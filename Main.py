@@ -16,14 +16,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def analizar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.lower()
     coincidencias = sum(1 for palabra in PALABRAS_ESTAFA if palabra in texto)
-    
     if coincidencias >= 2:
-        respuesta = f"🚨 ALERTA DE ESTAFA 🚨\n\nEncontré {coincidencias} palabras sospechosas.\n\nNO envíes dinero. Llama a tu familiar directo para confirmar."
+        respuesta = f"🚨 ALERTA DE ESTAFA 🚨\n\nEncontré {coincidencias} palabras sospechosas.\n\nNO envíes dinero. Llama a tu familiar directo."
     elif coincidencias == 1:
-        respuesta = f"⚠️ CUIDADO\n\nEncontré 1 palabra sospechosa.\nVerifica bien antes de hacer cualquier giro."
+        respuesta = f"⚠️ CUIDADO\n\nEncontré 1 palabra sospechosa.\nVerifica bien antes de girar."
     else:
         respuesta = "✅ No detecto palabras de estafa comunes.\n\nIgual siempre desconfía y verifica."
-    
     await update.message.reply_text(respuesta)
 
 def main():
