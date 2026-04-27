@@ -1,35 +1,46 @@
-# IDs de familia real - NO alertar si ellos hablan
-FAMILIA_REAL = [123456789, 987654321, 555444333] # Cambia por los IDs reales
-
-# Palabras clave de estafa
-KEYWORDS_ESTAFAS = ["nequi", "daviplata", "urgente", "soy tu hijo", "cambie de numero", "consignar", "transferir"]
-
-# Links sospechosos  
-LINKS_SOSPECHOSOS = [".xyz", ".tk", ".ml", "bit.ly", "tinyurl", "cutt.ly", "premio", "ganaste", "reclamar"]
-
-async def detectar_estafa(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    mensaje = update.message.text.lower()
-    user_id = update.effective_user.id
-    
-    # 1. LISTA BLANCA: Si es familia, no hacer nada
-    if user_id in FAMILIA_REAL:
+async def proteger_grupo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    mensaje = update.message
+    if not mensaje or not mensaje.text:
         return
     
-    # 2. DETECTOR DE LINKS + PALABRAS CLAVE
-    es_link_raro = any(link in mensaje for link in LINKS_SOSPECHOSOS)
-    es_estafa_texto = any(palabra in mensaje for palabra in KEYWORDS_ESTAFAS)
+    texto = mensaje.text.lower()
+    usuario = mensaje.from_user.first_name
+    user_id = mensaje.from_user.id
     
-    if es_link_raro or es_estafa_texto:
-        alerta = """
-🚨 ALERTA DE ESTAFA DETECTADA 🚨
-
-❌ NO respondas
-❌ NO des click a links
-❌ NO mandes plata
-
-🛡️ Guardia anti estafas BQ activado
-📢 AVÍSALE A TU FAMILIA
-
-Si tienes dudas, llama a tu familiar a su número de siempre.
-"""
-        await update.message.reply_text(alerta)
+    # Si es de la familia, no hacer nada
+    if usuario in FAMILIA_BLANCA:
+        return
+    
+    # Buscar palabras prohibidas
+    for palabra in PALABRAS_PROHIBIDAS:
+        if palabra in texto:
+            try:
+                # 1. BORRA EL MENSAJE
+                await mensaje.delete()
+                
+                # 2. EXPULSA AL ESTAFADOR DEL GRUPO 🔥 NUEVO
+                await context.bot.ban_chat_member(
+                    chat_id=mensaje.chat_id, 
+                    user_id=user_id
+                )
+                
+                # 3. MANDA ALERTA PRO
+                await context.bot.send_message(
+                    chat_id=mensaje.chat_id,
+                    text=f"🚨 ALERTA ROJA: AMENAZA ELIMINADA\n\n"
+                         f"Usuario expulsado: {usuario}\n"
+                         f"Motivo: Intento de estafa\n"
+                         f"Acción: Mensaje borrado + Usuario bloqueado\n\n"
+                         f"🛡️ Guardia BQ: Tu familia sigue 100% protegida.\n"
+                         f"NUNCA volverá a molestar."
+                )
+                print(f"Estafador {usuario} expulsado del grupo")
+                
+            except Exception as e:
+                print(f"Error al expulsar: {e}")
+                # Si falla expulsar, al menos avisa
+                await context.bot.send_message(
+                    chat_id=mensaje.chat_id,
+                    text=f"⚠️ No pude expulsar a {usuario}. Revísame los permisos de Admin."
+                )
+            break
