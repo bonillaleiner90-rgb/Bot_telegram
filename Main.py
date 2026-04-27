@@ -1,21 +1,19 @@
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
-
 import os
-TOKEN = os.getenv("TOKEN")  # Mete tu token de BotFather
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Palabras clave de estafa comunes
+TOKEN = os.getenv("TOKEN")
+
 PALABRAS_ESTAFA = [
-    "deposita", "consigna", "giro", "nequi", "daviplata", 
-    "urgente", "mami", "papi", "hijo", "accidente",
-    "preso", "policia", "abogado", "transferencia",
-    "ya mismo", "codigos", "clave", "prestame"
+    "deposita","consigna","giro","nequi","daviplata","urgente",
+    "mami","papi","hijo","preso","policia","abogado",
+    "transferencia","ya mismo","codigos","clave","prestame"
 ]
 
-async def start(update: Update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👮 Guardia Anti-Estafas activo\n\nMándame cualquier mensaje sospechoso y te digo si huele a estafa.")
 
-async def analizar(update: Update, context):
+async def analizar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.lower()
     coincidencias = sum(1 for palabra in PALABRAS_ESTAFA if palabra in texto)
     
@@ -28,7 +26,12 @@ async def analizar(update: Update, context):
     
     await update.message.reply_text(respuesta)
 
-app = Application.builder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT, analizar))
-app.run_polling()
+def main():
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, analizar))
+    print("Bot iniciado...")
+    app.run_polling()
+
+if __name__ == '__main__':
+    main()
