@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-TOKEN = "TU_TOKEN_AQUI"  # Mete tu token de BotFather
+TOKEN = "8340752804:AAGklSL1MzQ6GXlUEMHv7Vu2b0XxE67Wp_0"  # Mete tu token de BotFather
 
 # Palabras clave de estafa comunes
 PALABRAS_ESTAFA = [
