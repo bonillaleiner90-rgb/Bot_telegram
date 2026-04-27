@@ -1,5 +1,5 @@
 import os
-from telegram import Update
+   python-telegram-bot==21.6
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 TOKEN = os.getenv('TOKEN')
