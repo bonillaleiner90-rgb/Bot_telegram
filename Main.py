@@ -1,35 +1,20 @@
 import os
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from Panel import start, help_command, analizar_mensaje
 
-TOKEN = os.getenv("TOKEN")
-
-PALABRAS_ESTAFA = [
-    "deposita","consigna","giro","nequi","daviplata","urgente",
-    "mami","papi","hijo","preso","policia","abogado",
-    "transferencia","ya mismo","codigos","clave","prestame"
-]
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👮 Guardia Anti-Estafas activo\n\nMándame cualquier mensaje sospechoso y te digo si huele a estafa.")
-
-async def analizar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = update.message.text.lower()
-    coincidencias = sum(1 for palabra in PALABRAS_ESTAFA if palabra in texto)
-    if coincidencias >= 2:
-        respuesta = f"🚨 ALERTA DE ESTAFA 🚨\n\nEncontré {coincidencias} palabras sospechosas.\n\nNO envíes dinero. Llama a tu familiar directo."
-    elif coincidencias == 1:
-        respuesta = f"⚠️ CUIDADO\n\nEncontré 1 palabra sospechosa.\nVerifica bien antes de girar."
-    else:
-        respuesta = "✅ No detecto palabras de estafa comunes.\n\nIgual siempre desconfía y verifica."
-    await update.message.reply_text(respuesta)
+TOKEN = os.environ.get("TOKEN")
 
 def main():
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, analizar))
+    updater = Updater(token=TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, analizar_mensaje))
+
     print("Bot iniciado...")
-    app.run_polling()
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
     main()
