@@ -3,29 +3,38 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 
-st.set_page_config(page_title="Guardian BQ Panel", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="Guardia Anti Estafas BQ", layout="wide")
 st.title("🛡️ Panel Guardian BQ")
-st.subheader("Protección Digital pa' Negocios en Barranquilla")
+st.subheader("Protección Digital para Barranquilla")
 
-conn = sqlite3.connect('clientes.db')
+# CAMBIO 1: Ahora lee estafas.db no clientes.db
+conn = sqlite3.connect('estafas.db')
+
 try:
-    df = pd.read_sql_query("SELECT * FROM stats", conn)
+    # CAMBIO 2: Leer tabla usuarios
+    df_usuarios = pd.read_sql_query("SELECT * FROM usuarios", conn)
+    df_alertas = pd.read_sql_query("SELECT * FROM alertas", conn)
 except:
-    st.error("Aún no hay datos. Usa el bot primero con /start")
+    st.error("Aún no hay datos. Usa el bot de Telegram y envía /start")
     st.stop()
 
-cliente = st.selectbox("🔍 Busca tu negocio:", df['cliente'].unique())
-datos_cliente = df[df['cliente'] == cliente]
+st.success(f"✅ Usuarios registrados: {len(df_usuarios)}")
+st.success(f"🚨 Alertas detectadas: {len(df_alertas)}")
 
-col1, col2, col3 = st.columns(3)
-col1.metric("🚨 Estafas Bloqueadas", datos_cliente['estafas_bloqueadas'].sum())
-col2.metric("📅 Activo desde", datos_cliente['fecha'].iloc[0])
-col3.metric("👥 Grupo Protegido", cliente)
+col1, col2 = st.columns(2)
 
-st.subheader("📊 Actividad del mes")
-if len(datos_cliente) > 1:
-    st.bar_chart(datos_cliente.set_index('fecha')['estafas_bloqueadas'])
-else:
-    st.info("Cuando bloqueemos más estafas, aquí verás el gráfico")
+with col1:
+    st.subheader("👥 Usuarios Activos")
+    if len(df_usuarios) > 0:
+        st.dataframe(df_usuarios)
+    else:
+        st.info("Nadie ha usado /start aún")
 
-st.caption("Guardian BQ V2 | Soporte: Tu WhatsApp")
+with col2:
+    st.subheader("🚨 Últimas Alertas")
+    if len(df_alertas) > 0:
+        st.dataframe(df_alertas.sort_values('fecha', ascending=False))
+    else:
+        st.info("No se han detectado estafas aún")
+
+conn.close()
